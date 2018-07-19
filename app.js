@@ -46,7 +46,7 @@ bot.dialog('/', [
     (session,results)=>{
         if (SegundaPrimeraVez===true){
             console.log('Que listo eres, No entro')
-            session.beginDialog('/Iniciar');
+            session.beginDialog('/Cossete');
 
             op=false;
         }else{
@@ -54,10 +54,10 @@ bot.dialog('/', [
             if (op==="Si") {
                 session.send('Pronto configuraremos esto...')  //Mostrar Opciones
                 session.send('En ¿Que puedo ayudarte?')
-                session.beginDialog('/Iniciar');
+                session.beginDialog('/Cossete');
             } else {
                 session.send('Muy bien ¿En que puedo ayudarte?')
-                session.beginDialog('/Iniciar');
+                session.beginDialog('/Cossete');
             }
           
         }
@@ -65,17 +65,91 @@ bot.dialog('/', [
 
 ]);    
 
-bot.dialog('/Iniciar', dialog);
+bot.dialog('/Cossete', dialog);
 
-dialog.matches ('Comprar',[
+dialog.matches('Comprar',[
     (session,args,next)=>{
-        Producto = builder.EntityRecognizer.findAllEntities(args.entities,'Producto');
-        Talla = builder.EntityRecognizer.findAllEntities(args.entities,'Talla');
-        let Extension=Producto.length;
-        if (Extension>0) {
-            session.send(`Muy bien entonces quieres un ${Producto[0].entity} en talla ${Talla[0].entity}`);
+
+        var Productos=builder.EntityRecognizer.findAllEntities(args.entities,'Producto');
+        var Cancelar=builder.EntityRecognizer.findAllEntities(args.entities,'Cancelar');
+        var AccionLUIS=builder.EntityRecognizer.findAllEntities(args.entities,'Revisar');
+        // if(Cancelar.length>0){
+        //     Accion="cancelar";
+        if (SiProducto) {
+            Producto=Productos[0].entity;
+            next();
         } else {
-            session.send('¿Que deseas comprar?');
+            
+            
+            if(AccionLUIS.length>0){
+                Accion="Ver"
+            }else{
+                Accion="Comprar"
+            }
+            if(Accion==="Ver"||Accion==="Comprar"){
+                if(Productos.length>0){
+                    Producto=Productos[0].entity;
+                    var SiProducto=true;
+                    next();
+                }else{
+                    session.send('¿Qué producto te interesa?');
+                    
+                session.beginDialog('/Cossete');
+                }
+            }
+    }
+    },(sessiono,result)=>{
+        console.log(Producto)
+        switch (Accion) {
+            case "Comprar":
+                session.beginDialog('/Comprar');
+                break;
+        
+            case "Ver":
+                session.beginDialog('/Ver');
+                break;
+            case "cancelar":
+                session.beginDialog('/cancelar');
+                break;    
         }
     }
-])
+]);
+bot.dialog('/Ver',[
+    (session,result)=>{
+        let connection=conexion.conectar();
+        if(connection){
+            console.log("Estas conectado a la base de datos");
+        }
+        sql=`SELECT * FROM Productos WHERE Nombre='${Producto}'`;
+        var queryRevisar=connection.query(sql,(error,result)=>{
+            if(error){
+                console.log("Hubo un error con la consulta a la base de datos");
+                throw error;
+            }
+            Raraimg=result[0].Imagen;
+            
+            base64img.img(`data:image/jpg;base64,${Raraimg}`,"C:\\imgBot",`${Producto}`,function(err,filepath){
+                if(err){
+                    console.log("Hubo un error con la imagen");
+                    throw err;
+                } 
+            });
+            //Crear la hero card con toda la informacion del producto
+            var direccion=`${direccionI}\\${Producto}.jpg`
+            var msg = new builder.Message(session);
+            msg.attachmentLayout(builder.AttachmentLayout.carousel)
+            msg.attachments([
+                new builder.HeroCard(session)
+                .title(result[0].Nombre)
+                .subtitle("100% Soft and Luxurious Cotton")
+                .text(`Price is $${result[0].Precio} and carried in sizes (S, M, L, and XL)`)
+                .images([builder.CardImage.create(session,direccion)])
+                .buttons([
+                    builder.CardAction.imBack(session, "buy classic white t-shirt", "Buy")
+                ])
+            ]);
+            session.send(msg);
+            connection.end();
+        });
+     }    
+]);
