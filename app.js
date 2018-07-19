@@ -41,6 +41,7 @@ bot.dialog('/', [
         }
         next();
 
+
     },
     (session,results)=>{
         if (SegundaPrimeraVez===true){
@@ -72,9 +73,9 @@ dialog.matches ('Comprar',[
         Talla = builder.EntityRecognizer.findAllEntities(args.entities,'Talla');
         let Extension=Producto.length;
         if (Extension>0) {
-            session.send(`Muy bien entonces quieres un ${Producto[0].entity}`);
+            session.send(`Muy bien entonces quieres un ${Producto[0].entity} en talla ${Talla[0].entity}`);
         } else {
-            console.log('Algo estas haciendo mal, la extension es: '+Producto[0].entity);
+            session.send('¿Que deseas comprar?');
         }
     }
 ])
