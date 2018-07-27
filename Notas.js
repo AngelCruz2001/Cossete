@@ -7,6 +7,7 @@ var btoa=require('btoa');
 //Variables globales
 var conexion=require('./db/conexion');
 var Producto,Accion,sql,direccionI="C:\\imgBot";
+var inMemoryStorage = new builder.MemoryBotStorage();
 // Levantar Restify
 var server = restify.createServer();
 //configurando puerto
@@ -26,14 +27,28 @@ var model = "	https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/b52309e8
 var Salon;
 var recognizer = new builder.LuisRecognizer(model);
 var dialog= new builder.IntentDialog({recognizers:[recognizer]});
-//Dialogo Raíz
+var YaNoEntres=true;
+// Dialogo Raíz
 bot.dialog('/',[
-    (session,result)=>{
-        session.send("Hola soy James");
-        session.send("¿Hay algo que pueda hacer por ti?");
-        session.beginDialog('/Cossete');
+    (session)=>{
+        // session.send("Holi");
     }
 ]);
+bot.on('conversationUpdate', function (message) {
+    if (message.membersAdded && message.membersAdded.length > 0) {
+        if(YaNoEntres){
+            // Say hello
+            var isGroup = message.address.conversation.isGroup;
+            var txt = isGroup ? "Saludo" : "Hola soy James";
+            var reply = new builder.Message()
+                    .address(message.address)
+                    .text(txt);
+            bot.send(reply);
+            YaNoEntres=false;
+        }
+        
+    }
+});
 //Dialogo con LUIS
 bot.dialog('/Cossete',dialog);
 //Dialogos dependiendo del intento detectado por LUIS
