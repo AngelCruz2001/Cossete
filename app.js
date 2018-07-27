@@ -71,7 +71,6 @@ dialog.matches('Comprar',[
     (session,args,next)=>{
 
         var Productos=builder.EntityRecognizer.findAllEntities(args.entities,'Producto');
-        var Cancelar=builder.EntityRecognizer.findAllEntities(args.entities,'Cancelar');
         var AccionLUIS=builder.EntityRecognizer.findAllEntities(args.entities,'Revisar');
         // if(Cancelar.length>0){
         //     Accion="cancelar";
@@ -79,16 +78,11 @@ dialog.matches('Comprar',[
             Producto=Productos[0].entity;
             next();
         } else {
-            
-            
             if(AccionLUIS.length>0){
                 Accion="Ver"
-            }else{
-                Accion="Comprar"
             }
-            if(Accion==="Ver"||Accion==="Comprar"){
-                if(Productos.length>0){
-                    Producto=Productos[0].entity;
+            Producto=Productos[0].entity;
+                if(Producto!==""){
                     var SiProducto=true;
                     next();
                 }else{
@@ -96,7 +90,7 @@ dialog.matches('Comprar',[
                     
                 session.beginDialog('/Cossete');
                 }
-            }
+            
     }
     },(sessiono,result)=>{
         console.log(Producto)
@@ -115,7 +109,7 @@ dialog.matches('Comprar',[
     }
 ]);
 bot.dialog('/Ver',[
-    (session,result)=>{
+    (session,result)=>{ñ
         let connection=conexion.conectar();
         if(connection){
             console.log("Estas conectado a la base de datos");
