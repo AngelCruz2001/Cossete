@@ -166,9 +166,9 @@ bot.dialog('/ComprarSEntidad',[
                 session.beginDialog('/')    
     
             }
-            for(var i=0; i<=Extension1; i++){
-                CrearTarjetProductos(session,Extension1,"Producto"+i,Raraimg,i);
-            }
+            // for(var i=0; i<=Extension1; i++){
+            //     CrearTarjetProductos(session,Extension1,"Producto"+i,Raraimg,i);
+            // }    
         
     }
 ])
