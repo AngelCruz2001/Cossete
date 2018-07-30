@@ -3,12 +3,6 @@ var builder = require('botbuilder');
 var restify =require ('restify');
 var btoa=require('btoa');
 var base64img = require ('base64-img');
-
-//Variables globales
-var conexion=require('./db/conexion');
-var Producto,Accion,sql,direccionI="C:\\imgBot";
-var inMemoryStorage = new builder.MemoryBotStorage();
-
 // Levantar Restify
 var server = restify.createServer();
 //configurando puerto
@@ -25,7 +19,16 @@ var model = "	https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/b52309e8
 var Salon;
 var recognizer = new builder.LuisRecognizer(model);
 var dialog= new builder.IntentDialog({recognizers:[recognizer]});
-
+//Conexion a base de datos
+var mongoose=require('mongoose');
+var BD="mongodb://JpgAngel:Jpg1407a@ds018568.mlab.com:18568/cossete";
+mongoose.connect(BD,{useNewUrlParser:true},(error)=>{
+    if(error){
+        console.log("Has ocurried an error in conection to database");
+    }else{
+        console.log("Connected to database");
+    }
+});
 //Variables
 var YaNoEntres=true;
 var Asesorar;
@@ -93,7 +96,7 @@ dialog.matches('Saludo',[
 //Dialogos dependiendo del intento detectado por LUIS
 dialog.matches('Comprar',[
     (session,results,next)=>{
-
+        
         session.send("¡Genial!")
         builder.Prompts.choice(session,'¿Quiere que lo asesore en la busqueda de un producto?',"Si|No",{ listStyle: builder.ListStyle.button });
     //   next();
@@ -107,7 +110,7 @@ dialog.matches('Comprar',[
     createHeroCard(session);
 
 
-    base64img.img(`data:image/png;base64,${Raraimg}`,"C:\\imgsBot",`${Salon}`,function(err,filepath){});
+    base64img.img("data:image/jpeg;base64,","C:\\imgsBot",`${Salon}`,function(err,filepath){});
     direccion=direccionI+"\\"+Salon+".png"
     var heroCard= new builder.HeroCard(session,direccion)
         .title('Imagen del cañon')
