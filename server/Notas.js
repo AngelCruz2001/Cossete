@@ -26,11 +26,11 @@ var dialog= new builder.IntentDialog({recognizers:[recognizer]});
 
 //Variables
 var YaNoEntres=true;
+var Asesorar;
 var Hora = new Date().getHours();
 var Saludo="";
+var PrimeraVez=true;
 
-// Dialogo Raíz
-bot.dialog('/',dialog);
 bot.on('conversationUpdate', function (message) {
     if (message.membersAdded && message.membersAdded.length > 0) {
         if(YaNoEntres){
@@ -52,14 +52,47 @@ bot.on('conversationUpdate', function (message) {
             bot.send(reply);
             YaNoEntres=false;
         }
+        }
         
-    }
+    
 });
+
+// Dialogo Raíz
+bot.dialog('/',[
+    (session)=>{
+        if(PrimeraVez===false){
+            session.send("Hola de nuevo ¿En que puedo ayudarte?");
+        }
+        PrimeraVez=false;
+        console.log('====================================');
+        console.log("Si entra retana me va a comprar un arizona");
+        console.log('====================================');
+        session.beginDialog('/Cossete')
+    }
+]);
+bot.dialog('/Cossete', dialog)
+
+dialog.matches('Saludo',[
+    (session)=>{
+        session.send('Hola')
+    }
+])
 //Dialogos dependiendo del intento detectado por LUIS
 dialog.matches('Comprar',[
-    (session,args)=>{
-      session.send("Quieres comprar")
-      
-       
+    (session,results,next)=>{
+      session.send("¡Genial!")
+      session.Prompts.choice(session,'¿Quiere que lo asesore en la busqueda de un producto?',"Si|No",{listStyle:builder.ListStyle.button})
+      next();
+    },
+    (session,results)=>{
+    Asesorar=results.response.entity;
+    console.log(Asesorar)
+    if(Asesorar==="Si"){
+        session.send("Se supone que aqui le enseño los productos y le muestro imagines pero pues que flojera ¿Verdad")
+    }
+      session.send("Dirigase a un producto de su interes y seleccione añadir al carrito.");
+      session.send('Seleccione la talla y la cantidad de prendas que le gustaria adquirir, presione "Go to cart".');
+      session.send('Aqui puede seleccionar de que forma quiere pagar')
+      session.endConversation("Si tiene alguna otra duda solo digame.")
     }
 ]);
