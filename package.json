@@ -6,15 +6,17 @@
   "author": "AngelCruz2001 <Angi_ed01@hotmail.com>",
   "license": "MIT",
   "scripts": {
-    "start": "nodemon Notas.js",
-    "gitAngel":"git add -A && git add . && git commit -mCambios && git push origin master"
+    "start": "nodemon app.js",
+    "gitAngel": "git add -A && git add . && git commit -mCambios && git push origin master"
   },
   "dependencies": {
+    "asyncawait": "^1.0.7",
     "base64-img": "^1.0.4",
     "botbuilder": "^3.15.0",
     "btoa": "^1.2.1",
     "dotenv": "^6.0.0",
     "express": "^4.16.3",
+    "mongoose": "^5.2.5",
     "mysql": "^2.16.0",
     "restify": "^7.2.1"
   }
