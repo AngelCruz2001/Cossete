@@ -8,7 +8,8 @@ var base64img = require ('base64-img');
 var conexion=require('./db/conexion');
 var Producto,Accion,sql,direccionI="C:\\imgBot";
 var inMemoryStorage = new builder.MemoryBotStorage();
-
+var Extension1=2,Raraimg="",Tarjetas1=[],Tarjetas=[];
+var ProductoElegido;
 // Levantar Restify
 var server = restify.createServer();
 //configurando puerto
@@ -33,7 +34,7 @@ var Hora = new Date().getHours();
 var Saludo="";
 var PrimeraVez=true;
 var SigueSaludando=false;
-
+var Extension=3;
 bot.on('conversationUpdate', function (message) {
     if (message.membersAdded && message.membersAdded.length > 0) {
         if(YaNoEntres){
@@ -92,39 +93,23 @@ dialog.matches('Saludo',[
 
 //Dialogos dependiendo del intento detectado por LUIS
 dialog.matches('Comprar',[
-    (session,results,next)=>{
+    (session,args,next)=>{
+        var Producto=builder.EntityRecognizer.findAllEntities(args.entities, 'Producto')
+        var ExtensionEntidad=Producto.length;
+        console.log(ExtensionEntidad)
+        if(ExtensionEntidad>0){
+            ProductoElegido=Producto[0].entity;
+        }else{
+            console.log("Entro")
+            session.beginDialog('/ComprarSEntidad');
+            
+        }
 
-        session.send("¡Genial!")
-        builder.Prompts.choice(session,'¿Quiere que lo asesore en la busqueda de un producto?',"Si|No",{ listStyle: builder.ListStyle.button });
     //   next();
     },
-    (session,results)=>{
-    Asesorar=results.response.entity;
-    console.log(Asesorar)
-    if(Asesorar==="Si"){
-        session.send("Se supone que aqui le enseño los productos y le muestro imagines pero pues que flojera ¿Verdad?")
-    }
-    createHeroCard(session);
-
-
-    base64img.img(`data:image/png;base64,${Raraimg}`,"C:\\imgsBot",`${Salon}`,function(err,filepath){});
-    direccion=direccionI+"\\"+Salon+".png"
-    var heroCard= new builder.HeroCard(session,direccion)
-        .title('Imagen del cañon')
-        .subtitle('')
-        .text(Json.Imagen)
-        .images([
-            builder.CardImage.create(session,direccion)
-        ])
-        .buttons([
-
-        ]);
-        var msj=new builder.Message(session).addAttachment(heroCard);
-        session.send(msj);
-
-
-    }
+     
 ]);
+
 
 //Funciones
 Guia=(session)=>{
@@ -133,13 +118,10 @@ Guia=(session)=>{
     session.send('Aqui puede seleccionar de que forma quiere pagar')
     session.endConversation("Si tiene alguna otra duda solo digame.")
 }
-function createHeroCard(session) {
-    console.log('====================================');
-    console.log("Entro");
-    console.log('====================================');
- 
-    
-    var heroCard1 = new builder.HeroCard(session)
+
+
+CrearTarjetProductos=(session,Extension,Nombre,Base64Img,ExtensionActual)=>{
+     Nombre = new builder.HeroCard(session)
     .title('Esta es una tarjeta de tipo Hero Card')
     .subtitle('Este es su correspondente subtítulo')
     .text('Sigan a Marcelo Felman en Twitter: @mfelman')
@@ -150,21 +132,44 @@ function createHeroCard(session) {
         builder.CardAction.openUrl(session, 'https://docs.botframework.com/en-us/', 'Aprende')
     ]);
 
-var heroCard2 = new builder.HeroCard(session)
-    .title('Esta es una OTRA de tipo Hero Card')
-    .subtitle('Este es su correspondente subtítulo')
-    .text('Sigan (si no lo hicieron) a Marcelo Felman en Twitter: @mfelman')
-    .images([
-        builder.CardImage.create(session, 'https://sec.ch9.ms/ch9/7ff5/e07cfef0-aa3b-40bb-9baa-7c9ef8ff7ff5/buildreactionbotframework_960.jpg')
-    ])
-    .buttons([
-        builder.CardAction.openUrl(session, 'https://docs.botframework.com/en-us/', 'Aprende')
-    ]);
-
-// Creamos un array de tarjetas
-var tarjetas = [heroCard1, heroCard2];
-
-// Adjuntamos la tarjeta al mensaje
-var msj = new builder.Message(session).attachmentLayout(builder.AttachmentLayout.carousel).attachments(tarjetas);
-session.send(msj);
+        // Creamos un array de tarjetas
+    Tarjetas1.push(Nombre)
+    if(ExtensionActual===Extension1){
+        var msj = new builder.Message(session).attachmentLayout(builder.AttachmentLayout.carousel).attachments(Tarjetas1);
+        session.send(msj);
+    }
 }
+
+
+bot.dialog('/ComprarSEntidad',[
+    (session)=>{
+        console.log('====================================');
+        session.send("¡Genial!")
+        builder.Prompts.choice(session,'¿Quiere que lo asesore en la busqueda de un producto?',"Si|No",{ listStyle: builder.ListStyle.button });
+    },
+    (session,results)=>{
+        Asesorar=results.response.entity;
+        console.log(Asesorar)
+        if(Asesorar==="Si"){
+            session.send("Se supone que aqui le enseño los productos y le muestro imagines pero pues que flojera ¿Verdad?")
+        }
+        builder.PromptText(session,"¿Algo en especifico?")
+    },
+    (session,results)=>{
+            var Respuesta=results.response;
+            if(Respuesta.equalsIgnoreCase("Si")){
+                session.send("Muy bien, ¿Qué te interesa?")
+                session.beginDialog('/')    
+            }else if(Respuesta.equalsIgnoreCase("No")){
+                //Crear TODOOOOOOOOO el catalogo pero despuecito
+            }else{
+                session.beginDialog('/')    
+    
+            }
+            // for(var i=0; i<=Extension1; i++){
+            //     CrearTarjetProductos(session,Extension1,"Producto"+i,Raraimg,i);
+            // }    
+        
+    }
+])
+        
