@@ -6,3 +6,6 @@ var ProductosShema=new Shema({
     Precio:Number
 });
 
+var modelProductos=mongoose.model("Productos",ProductosShema);
+module.exports.modelProductos=modelProductos;
+
