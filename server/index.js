@@ -5,11 +5,11 @@ var btoa=require('btoa');
 var base64img = require ('base64-img');
 
 //Variables globales
-var conexion=require('./db/conexion');
+var conexion=require('./db/Consultas');
 var Producto,Accion,sql,direccionI="C:\\imgBot";
 var inMemoryStorage = new builder.MemoryBotStorage();
 var Extension1=2,Raraimg="",Tarjetas1=[],Tarjetas=[];
-var ProductoElegido;
+var ProductoElegido,ProductosElegidos;
 // Levantar Restify
 var server = restify.createServer();
 //configurando puerto
@@ -99,6 +99,7 @@ dialog.matches('Comprar',[
         console.log(ExtensionEntidad)
         if(ExtensionEntidad>0){
             ProductoElegido=Producto[0].entity;
+            
         }else{
             console.log("Entro")
             session.beginDialog('/ComprarSEntidad');
