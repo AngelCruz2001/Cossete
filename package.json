@@ -7,14 +7,12 @@
   "license": "MIT",
   "scripts": {
     "start": "nodemon bin/dev",
-
     "clean": "rm -rf dist/",
     "build": "npm run clean && mkdir dist && babel server -s -d dist",
     "production": "npm run build && node bin/production",
     "dev": "npm run start"
   },
   "dependencies": {
-    "asyncawait": "^1.0.7",
     "base64-img": "^1.0.4",
     "botbuilder": "^3.15.0",
     "btoa": "^1.2.1",

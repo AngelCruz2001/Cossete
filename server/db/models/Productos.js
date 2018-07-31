@@ -2,10 +2,12 @@ var mongoose = require('mongoose');
 var Shema=mongoose.Schema;
 
 var ProductosShema=new Shema({
-    Nombre:String,
-    Precio:Number
+    Producto:String,
+    Tipo:String,
+    Precio:Number,
+    Imagen:String
 });
 
-var modelProductos=mongoose.model("Productos",ProductosShema);
+var modelProductos=mongoose.model("productos",ProductosShema);
 module.exports.modelProductos=modelProductos;
 

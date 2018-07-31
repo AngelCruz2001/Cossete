@@ -3,8 +3,17 @@ var builder = require('botbuilder');
 var restify =require ('restify');
 var btoa=require('btoa');
 var base64img = require ('base64-img');
+
+//Variables globales
+var conexion=require('./db/Consultas');
+var connector=require('./db/conexion');
+var Producto,Accion,sql,direccionI="C:\\imgBot";
+var inMemoryStorage = new builder.MemoryBotStorage();
+var Extension1=2,Raraimg="",Tarjetas1=[],Tarjetas=[];
+var ProductoElegido,ProductosElegidos;
 // Levantar Restify
 var server = restify.createServer();
+connector.conectar();
 //configurando puerto
 server.listen(process.env.port || process.env.PORT||3000,function(){
     console.log('listering to', server.name, server.url);
@@ -14,21 +23,15 @@ var connector = new builder.ChatConnector({appId: '',appPassword:''})
 //Crear bot
 var bot = new builder.UniversalBot(connector);
 server.post('/api/messages',connector.listen());
+//conexion base de datos
+
+    
 //Configuracion de LUIS
 var model = "	https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/b52309e8-88bd-4a01-9ddf-3be52dc0a036?subscription-key=a26e9792086947db99112f2aa9d5c3a3&verbose=true&timezoneOffset=0&q=";
 var Salon;
 var recognizer = new builder.LuisRecognizer(model);
 var dialog= new builder.IntentDialog({recognizers:[recognizer]});
-//Conexion a base de datos
-var mongoose=require('mongoose');
-var BD="mongodb://JpgAngel:Jpg1407a@ds018568.mlab.com:18568/cossete";
-mongoose.connect(BD,{useNewUrlParser:true},(error)=>{
-    if(error){
-        console.log("Has ocurried an error in conection to database");
-    }else{
-        console.log("Connected to database");
-    }
-});
+
 //Variables
 var YaNoEntres=true;
 var Asesorar;
@@ -36,7 +39,7 @@ var Hora = new Date().getHours();
 var Saludo="";
 var PrimeraVez=true;
 var SigueSaludando=false;
-
+var Extension=3;
 bot.on('conversationUpdate', function (message) {
     if (message.membersAdded && message.membersAdded.length > 0) {
         if(YaNoEntres){
@@ -95,54 +98,45 @@ dialog.matches('Saludo',[
 
 //Dialogos dependiendo del intento detectado por LUIS
 dialog.matches('Comprar',[
-    (session,results,next)=>{
-        
-        session.send("¡Genial!")
-        builder.Prompts.choice(session,'¿Quiere que lo asesore en la busqueda de un producto?',"Si|No",{ listStyle: builder.ListStyle.button });
+    async(session,args,next)=>{
+        var Producto=builder.EntityRecognizer.findAllEntities(args.entities, 'Producto')
+        var ExtensionEntidad=Producto.length;
+        console.log(ExtensionEntidad)
+        if(ExtensionEntidad>0){
+            ProductoElegido=Producto[0].entity;
+            console.log(ProductoElegido)
+
+                await conexion.BP(ProductoElegido).then((respuesta)=>{
+                    ProductosElegidos=respuesta;
+                });
+
+            console.log("Productos elegidos   "+ProductosElegidos[0]);
+
+            session.send("Estamos programando esta parte, disculpe por las molestias");
+            
+        }else{
+            console.log("Entro")
+            session.beginDialog('/ComprarSEntidad');
+            
+        }
+
     //   next();
     },
-    (session,results)=>{
-    Asesorar=results.response.entity;
-    console.log(Asesorar)
-    if(Asesorar==="Si"){
-        session.send("Se supone que aqui le enseño los productos y le muestro imagines pero pues que flojera ¿Verdad?")
-    }
-    createHeroCard(session);
-
-
-    base64img.img("data:image/jpeg;base64,","C:\\imgsBot",`${Salon}`,function(err,filepath){});
-    direccion=direccionI+"\\"+Salon+".png"
-    var heroCard= new builder.HeroCard(session,direccion)
-        .title('Imagen del cañon')
-        .subtitle('')
-        .text(Json.Imagen)
-        .images([
-            builder.CardImage.create(session,direccion)
-        ])
-        .buttons([
-
-        ]);
-        var msj=new builder.Message(session).addAttachment(heroCard);
-        session.send(msj);
-
-
-    }
+     
 ]);
 
+
 //Funciones
-Guia=(session)=>{
+var Guia=(session)=>{
     session.send("Dirigase a un producto de su interes y seleccione añadir al carrito.");
     session.send('Seleccione la talla y la cantidad de prendas que le gustaria adquirir, presione "Go to cart".');
     session.send('Aqui puede seleccionar de que forma quiere pagar')
     session.endConversation("Si tiene alguna otra duda solo digame.")
 }
-function createHeroCard(session) {
-    console.log('====================================');
-    console.log("Entro");
-    console.log('====================================');
- 
-    
-    var heroCard1 = new builder.HeroCard(session)
+
+
+var CrearTarjetProductos=(session,Extension,Nombre,Base64Img,ExtensionActual)=>{
+     Nombre = new builder.HeroCard(session)
     .title('Esta es una tarjeta de tipo Hero Card')
     .subtitle('Este es su correspondente subtítulo')
     .text('Sigan a Marcelo Felman en Twitter: @mfelman')
@@ -153,21 +147,48 @@ function createHeroCard(session) {
         builder.CardAction.openUrl(session, 'https://docs.botframework.com/en-us/', 'Aprende')
     ]);
 
-var heroCard2 = new builder.HeroCard(session)
-    .title('Esta es una OTRA de tipo Hero Card')
-    .subtitle('Este es su correspondente subtítulo')
-    .text('Sigan (si no lo hicieron) a Marcelo Felman en Twitter: @mfelman')
-    .images([
-        builder.CardImage.create(session, 'https://sec.ch9.ms/ch9/7ff5/e07cfef0-aa3b-40bb-9baa-7c9ef8ff7ff5/buildreactionbotframework_960.jpg')
-    ])
-    .buttons([
-        builder.CardAction.openUrl(session, 'https://docs.botframework.com/en-us/', 'Aprende')
-    ]);
-
-// Creamos un array de tarjetas
-var tarjetas = [heroCard1, heroCard2];
-
-// Adjuntamos la tarjeta al mensaje
-var msj = new builder.Message(session).attachmentLayout(builder.AttachmentLayout.carousel).attachments(tarjetas);
-session.send(msj);
+        // Creamos un array de tarjetas
+    Tarjetas1.push(Nombre)
+    if(ExtensionActual===Extension1){
+        var msj = new builder.Message(session).attachmentLayout(builder.AttachmentLayout.carousel).attachments(Tarjetas1);
+        session.send(msj);
+    }
 }
+
+
+    
+
+
+bot.dialog('/ComprarSEntidad',[
+    (session)=>{
+        console.log('====================================');
+        session.send("¡Genial!")
+        builder.Prompts.choice(session,'¿Quiere que lo asesore en la busqueda de un producto?',"Si|No",{ listStyle: builder.ListStyle.button });
+    },
+    (session,results)=>{
+        Asesorar=results.response.entity;
+        console.log(Asesorar)
+        if(Asesorar==="Si"){
+            session.send("Se supone que aqui le enseño los productos y le muestro imagines pero pues que flojera ¿Verdad?")
+        }
+        builder.Prompts.text(session,"¿Algo en especifico?")
+    },
+    (session,results)=>{
+            var Respuesta=results.response;
+            if(Respuesta.equalsIgnoreCase("Si")){
+                session.send("Muy bien, ¿Qué te interesa?")
+                session.beginDialog('/')    
+            }else if(Respuesta.equalsIgnoreCase("No")){
+                //Crear TODOOOOOOOOO el catalogo pero despuecito
+            }else{
+                session.beginDialog('/')    
+    
+            }
+            // for(var i=0; i<=Extension1; i++){
+            //     CrearTarjetProductos(session,Extension1,"Producto"+i,Raraimg,i);
+            // }    
+        
+    }
+])
+        
+
