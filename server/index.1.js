@@ -9,7 +9,7 @@ var conexion=require('./db/Consultas');
 var connector=require('./db/conexion');
 var Producto,Accion,sql,direccionI="C:\\imgBot";
 var inMemoryStorage = new builder.MemoryBotStorage();
-var Extension1=2,Raraimg="",Tarjetas1=[],Tarjetas=[];
+var Extension1=2,Raraimg="",Tarjetas1=[],Tarjetas=[],revisar;
 var ProductoElegido,ProductosElegidos;
 // Levantar Restify
 var server = restify.createServer();
@@ -100,19 +100,39 @@ dialog.matches('Saludo',[
 dialog.matches('Comprar',[
     async(session,args,next)=>{
         var Producto=builder.EntityRecognizer.findAllEntities(args.entities, 'Producto')
-        var ExtensionEntidad=Producto.length;
+        var Precio=builder.EntityRecognizer.findAllEntities(args.entities,'Precio');
+        var Imagen=builder.EntityRecognizer.findAllEntities(args.entities,'Imagen');
+        var ExtensionEntidad=Producto.length,ExtensionPrecio=Precio.length,ExtensionImagen=Imagen.length;
+        console.log(`Precio ${ExtensionPrecio} y  Imagen  ${ExtensionImagen}`)
         console.log(ExtensionEntidad)
+        if(ExtensionPrecio>0){
+            revisar="Precio";
+        }else if(ExtensionImagen>0){
+            revisar="Imagen"
+        }
         if(ExtensionEntidad>0){
             ProductoElegido=Producto[0].entity;
             console.log(ProductoElegido)
 
-                await conexion.BP(ProductoElegido).then((respuesta)=>{
-                    ProductosElegidos=respuesta;
-                });
-
-            console.log("Productos elegidos   "+ProductosElegidos[0]);
+            await conexion.BP(ProductoElegido).then((respuesta)=>{
+                ProductosElegidos=respuesta;
+            });
+            console.log("revisar: "+revisar)
+            if(revisar==="Precio"){
+                session.beginDialog("/verPrecio");
+            }else{
+                session.beginDialog("/verImagen");
+            }
+            console.log("Productos elegidos   "+ProductosElegidos.length);
 
             session.send("Estamos programando esta parte, disculpe por las molestias");
+
+            // for(var i=0;i<ProductosElegidos.length;i++){
+            //     session.send("Producto "+ProductosElegidos[i].Producto);
+            //     session.send("Tipo "+ProductosElegidos[i].Tipo);
+            //     session.send("Precio "+ProductosElegidos[i].Precio+"");
+            //     session.send("Imagen base64 "+ProductosElegidos[i].Imagen);
+            // }
             
         }else{
             console.log("Entro")
@@ -190,5 +210,17 @@ bot.dialog('/ComprarSEntidad',[
         
     }
 ])
+
+bot.dialog('/verPrecio',[
+    (session)=>{
+        session.send("Okey deja busco");
+        var opciones;
+        for(var k=0;k<ProductosElegidos.length;k++){
+            opciones=`${ProductosElegidos[i].Producto}  ${ProductosElegidos[k].Precio}|`
+            if(k===ProductosElegidos.length-1)opciones=`${ProductosElegidos[k].Producto}  ${ProductosElegidos[k].Precio}`
+        }
+        builder.Prompts.choice(session,"Tengo estas opciones, ¿Cual te gusta mas?",opciones,{ listStyle: builder.ListStyle.button });
+    }
+]);
         
 
