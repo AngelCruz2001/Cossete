@@ -82,7 +82,12 @@ bot.on('conversationUpdate', function (message) {
 
 
 bot.dialog('/', dialog)
+dialog.matches('IniciarSesion',[
+    (session)=>{
+        session.send("Dando ayuda a gente mensa")
 
+    }
+])
 dialog.matches('Saludo',[
     (session)=>{
         if(!SigueSaludando){
@@ -118,7 +123,9 @@ dialog.matches('Comprar',[
         }
         if(ExtensionEntidad>0){
             ProductoElegido=Producto[0].entity;
-            console.log(ProductoElegido)
+            console.log('====================================');
+            console.log(ProductoElegido);
+            console.log('====================================');
 
             await conexion.BP(ProductoElegido).then((respuesta)=>{
                 ProductosElegidos=respuesta;
@@ -131,14 +138,14 @@ dialog.matches('Comprar',[
             }
             console.log("Productos elegidos   "+ProductosElegidos.length);
 
-            session.send("Estamos programando esta parte, disculpe por las molestias");
+            // session.send("Estamos programando esta parte, disculpe por las molestias");
 
-            for(var i=0;i<ProductosElegidos.length;i++){
-                session.send("Producto "+ProductosElegidos[i].Producto);
-                session.send("Tipo "+ProductosElegidos[i].Tipo);
-                session.send("Precio "+ProductosElegidos[i].Precio+"");
-                session.send("Imagen base64 "+ProductosElegidos[i].Imagen);
-            }
+            // for(var i=0;i<ProductosElegidos.length;i++){
+            //     session.send("Producto "+ProductosElegidos[i].Producto);
+            //     session.send("Tipo "+ProductosElegidos[i].Tipo);
+            //     session.send("Precio "+ProductosElegidos[i].Precio+"");
+            //     session.send("Imagen base64 "+ProductosElegidos[i].Imagen);
+            // }
             
         }else{
             console.log("Entro")
@@ -150,7 +157,7 @@ dialog.matches('Comprar',[
     },
      
 ]);
-7
+
 
 //Funciones
 var Guia=(session)=>{
@@ -161,21 +168,27 @@ var Guia=(session)=>{
 }
 
 
-var CrearTarjetProductos=(session,Extension,Nombre,Base64Img,ExtensionActual)=>{
-     Nombre = new builder.HeroCard(session)
-    .title('Esta es una tarjeta de tipo Hero Card')
-    .subtitle('Este es su correspondente subtítulo')
-    .text('Sigan a Marcelo Felman en Twitter: @mfelman')
+var CrearTarjetProductos=(session,Extension,Nombre,UrlImg,ExtensionActual,NombreProducto,Precio)=>{
+    // base64Img.img('data:image/jpeg;'+Base64Img,'', Nombre, function(err, filepath) {});
+    console.log('====================================');
+    console.log(UrlImg);
+    console.log('====================================');
+    Nombre = new builder.HeroCard(session)
+    .title(NombreProducto)
+    .subtitle("$"+Precio+".00")
+    .text('Short Description here')
     .images([
-        builder.CardImage.create(session, 'https://sec.ch9.ms/ch9/7ff5/e07cfef0-aa3b-40bb-9baa-7c9ef8ff7ff5/buildreactionbotframework_960.jpg')
+        builder.CardImage.create(session, UrlImg)
     ])
     .buttons([
-        builder.CardAction.openUrl(session, 'https://docs.botframework.com/en-us/', 'Aprende')
+        builder.CardAction.openUrl(session, 'http://itecormovil.com/cosette/magento/index.php/shop.html', 'Comprar')
     ]);
 
         // Creamos un array de tarjetas
     Tarjetas1.push(Nombre)
-    if(ExtensionActual===Extension1){
+    if(ExtensionActual===Extension){
+    console.log(Extension +"  ==  "+ ExtensionActual);
+
         var msj = new builder.Message(session).attachmentLayout(builder.AttachmentLayout.carousel).attachments(Tarjetas1);
         session.send(msj);
     }
@@ -210,9 +223,7 @@ bot.dialog('/ComprarSEntidad',[
                 session.beginDialog('/')    
     
             }
-            // for(var i=0; i<=Extension1; i++){
-            //     CrearTarjetProductos(session,Extension1,"Producto"+i,Raraimg,i);
-            // }    
+            
         
     }
 ])
@@ -221,11 +232,22 @@ bot.dialog('/verPrecio',[
     (session)=>{
         session.send("Okey deja busco");
         var opciones;
-        for(var k=0;k<ProductosElegidos.length;k++){
-            opciones=`${ProductosElegidos[k].Producto}  ${ProductosElegidos[k].Precio}|`
-            if(k===ProductosElegidos.length-1)opciones=`${ProductosElegidos[k].Producto}  ${ProductosElegidos[k].Precio}`
-        }
-        builder.Prompts.choice(session,"Tengo estas opciones, ¿Cual te gusta mas?",opciones,{ listStyle: builder.ListStyle.button });
+        // for(var k=0;k<ProductosElegidos.length;k++){
+        //     opciones=`${ProductosElegidos[k].Producto}  ${ProductosElegidos[k].Precio}|`
+        //     if(k===ProductosElegidos.length-1)opciones=`${ProductosElegidos[k].Producto}  ${ProductosElegidos[k].Precio}`
+        // }
+        Extension=ProductosElegidos.length;
+        for(var i=0; i<Extension; i++){
+                CrearTarjetProductos(
+                    session,
+                    Extension-1,
+                    "Producto"+i,
+                    ProductosElegidos[i].URLimg,
+                    i,
+                    ProductosElegidos[i].Producto,
+                    ProductosElegidos[i].Precio);
+            }    
+        // builder.Prompts.choice(session,"Tengo estas opciones, ¿Cual te gusta mas?",opciones,{ listStyle: builder.ListStyle.button });
     }
 ]);
         

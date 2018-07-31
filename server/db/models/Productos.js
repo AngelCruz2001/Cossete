@@ -5,7 +5,7 @@ var ProductosShema=new Shema({
     Producto:String,
     Tipo:String,
     Precio:Number,
-    Imagen:String
+    URLimg:String
 });
 
 var modelProductos=mongoose.model("productos",ProductosShema);
