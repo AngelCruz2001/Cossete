@@ -3,7 +3,8 @@ var builder = require('botbuilder');
 var restify =require ('restify');
 var btoa=require('btoa');
 var base64img = require ('base64-img');
-
+var opn = require('opn');
+var Diccionario=require('../Diccionario');
 //Variables globales
 var conexion=require('./db/Consultas');
 var connector=require('./db/conexion');
@@ -84,8 +85,19 @@ bot.on('conversationUpdate', function (message) {
 bot.dialog('/', dialog)
 dialog.matches('IniciarSesion',[
     (session)=>{
-        session.send("Dando ayuda a gente mensa")
+        session.send("**Dando ayuda a gente mensa**")
 
+        session.send('Muy bien, dirigite a el boton en la parte superior derecha de la pagina para iniciar')
+        session.send('')
+        builder.Prompts.choice(session,'O presiona el boton de abajo ','Iniciar Sesion',{ listStyle: 3});
+
+    },
+    (session,results)=>{
+        if(results.response.entity != null){
+            var IniciarSesion= true;
+        }
+        session.send('Muy bien, fue un placer ayudarle, espero tenga un buen dia.');
+        opn('http://itecormovil.com/cosette/magento/index.php/customer/account/login/');
     }
 ])
 dialog.matches('Saludo',[
@@ -103,10 +115,28 @@ dialog.matches('None',[
     (session)=>{
         session.send("NONE")
     }
-
+ 
 ])
-
-
+dialog.matches('Despedida',[
+    (session)=>{
+        var Random = Math.floor(Math.random() * 4)+1; 
+        switch(Random){
+            case 1:
+                session.send("Muy bien, espero tengas un excelente dia.")
+                break;
+            case 2:
+                session.send("Correcto, espero poder ayudarte pronto");
+                break;
+            case 3:
+                session.send("Gracias por probar mis servicios espero poder ayudarte en un futuro cercano");
+                break;
+            case 4:
+                session.send("Hasta luego, gracias por su preferencia");
+                break;
+        }
+    }
+])
+ 
 //Dialogos dependiendo del intento detectado por LUIS
 dialog.matches('Comprar',[
     async(session,args,next)=>{
@@ -116,26 +146,30 @@ dialog.matches('Comprar',[
         var ExtensionEntidad=Producto.length,ExtensionPrecio=Precio.length,ExtensionImagen=Imagen.length;
         console.log(`Precio ${ExtensionPrecio} y  Imagen  ${ExtensionImagen}`)
         console.log(ExtensionEntidad)
+        ProductoElegido=Producto[0].entity;
+        ProductoElegido=Diccionario.Diccionario(ProductoElegido);
+        console.log("|"+ProductoElegido+"|")
         if(ExtensionPrecio>0){
             revisar="Precio";
         }else if(ExtensionImagen>0){
             revisar="Imagen"
         }
+        await conexion.BP(ProductoElegido).then((respuesta)=>{
+            ProductosElegidos=respuesta;
+        }); 
         if(ExtensionEntidad>0){
-            ProductoElegido=Producto[0].entity;
-            console.log('====================================');
-            console.log(ProductoElegido);
-            console.log('====================================');
 
-            await conexion.BP(ProductoElegido).then((respuesta)=>{
-                ProductosElegidos=respuesta;
-            }); 
+           
+            console.log("asdf"+ProductoElegido)
+
+          
             console.log("revisar: "+revisar)
             if(revisar==="Precio"){ 
                 session.beginDialog("/verPrecio");
             }else if(revisar==="Imagen"){
                 session.beginDialog("/verImagen");
             }
+            session.beginDialog("/verPrecio");
             console.log("Productos elegidos   "+ProductosElegidos.length);
 
             // session.send("Estamos programando esta parte, disculpe por las molestias");
@@ -167,6 +201,20 @@ var Guia=(session)=>{
     session.endConversation("Si tiene alguna otra duda solo digame.")
 }
 
+var traerProductos=(session)=>{
+    
+    Extension=ProductosElegidos.length;
+        for(var i=0; i<Extension; i++){
+                CrearTarjetProductos(
+                    session,
+                    Extension-1,
+                    "Producto"+i,
+                    ProductosElegidos[i].URLimg,
+                    i,
+                    ProductosElegidos[i].Producto,
+                    ProductosElegidos[i].Precio);
+            } 
+}
 
 var CrearTarjetProductos=(session,Extension,Nombre,UrlImg,ExtensionActual,NombreProducto,Precio)=>{
     // base64Img.img('data:image/jpeg;'+Base64Img,'', Nombre, function(err, filepath) {});
@@ -208,7 +256,8 @@ bot.dialog('/ComprarSEntidad',[
         Asesorar=results.response.entity;
         console.log(Asesorar)
         if(Asesorar==="Si"){
-            session.send("Se supone que aqui le enseño los productos y le muestro imagines pero pues que flojera ¿Verdad?")
+            opn('http://itecormovil.com/cosette/magento/index.php/catalogsearch/advanced/'); 
+            traerProductos(session);
         }
         builder.Prompts.text(session,"¿Algo en especifico?")
     },

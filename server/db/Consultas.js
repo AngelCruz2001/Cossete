@@ -6,6 +6,7 @@ var BuscarProducto=(Producto)=>{
             if(error){        
                 respuesta=error
             }else{
+                
                 respuesta=Productos;
             }
             if(respuesta===undefined || respuesta==="")respuesta="El producto que busca no esta en existencia"
