@@ -6,7 +6,7 @@
   "author": "AngelCruz2001 <Angi_ed01@hotmail.com>",
   "license": "MIT",
   "scripts": {
-    "start": "nodemon npm run production",
+    "start": "npm run production",
     "clean": "rm -rf dist/",
     "build": "npm run clean && mkdir dist && babel server -s -d dist",
     "production": "npm run build && node bin/production",
@@ -20,6 +20,8 @@
     "express": "^4.16.3",
     "mongoose": "^5.2.5",
     "mysql": "^2.16.0",
+    "natural": "^0.6.1",
+    "opn": "^5.3.0",
     "restify": "^7.2.1"
   },
   "devDependencies": {

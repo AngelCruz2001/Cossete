@@ -8,7 +8,7 @@
             "type": "node",
             "request": "launch",
             "name": "Iniciar programa",
-            "program": "${workspaceFolder}\\dist\\index.1.js"
+            "program": "${workspaceFolder}\\random.js"
         }
     ]
 }
