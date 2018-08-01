@@ -121,15 +121,16 @@ dialog.matches('Comprar',[
         }else if(ExtensionImagen>0){
             revisar="Imagen"
         }
+        await conexion.BP(ProductoElegido).then((respuesta)=>{
+            ProductosElegidos=respuesta;
+        });
         if(ExtensionEntidad>0){
             ProductoElegido=Producto[0].entity;
             console.log('====================================');
             console.log(ProductoElegido);
             console.log('====================================');
 
-            await conexion.BP(ProductoElegido).then((respuesta)=>{
-                ProductosElegidos=respuesta;
-            }); 
+             
             console.log("revisar: "+revisar)
             if(revisar==="Precio"){ 
                 session.beginDialog("/verPrecio");
@@ -166,7 +167,20 @@ var Guia=(session)=>{
     session.send('Aqui puede seleccionar de que forma quiere pagar')
     session.endConversation("Si tiene alguna otra duda solo digame.")
 }
-
+var traerProductos=(session)=>{
+    
+    Extension=ProductosElegidos.length;
+        for(var i=0; i<Extension; i++){
+                CrearTarjetProductos(
+                    session,
+                    Extension-1,
+                    "Producto"+i,
+                    ProductosElegidos[i].URLimg,
+                    i,
+                    ProductosElegidos[i].Producto,
+                    ProductosElegidos[i].Precio);
+            } 
+}
 
 var CrearTarjetProductos=(session,Extension,Nombre,UrlImg,ExtensionActual,NombreProducto,Precio)=>{
     // base64Img.img('data:image/jpeg;'+Base64Img,'', Nombre, function(err, filepath) {});
@@ -206,12 +220,15 @@ bot.dialog('/ComprarSEntidad',[
         Asesorar=results.response.entity;
         console.log(Asesorar)
         if(Asesorar==="Si"){
-            session.send("Se supone que aqui le enseño los productos y le muestro imagines pero pues que flojera ¿Verdad?")
+            session.send("Se supone que aqui le enseño los productos y le muestro imagines pero pues que flojera ¿Verdad?");
+            
+            traerProductos(session);
+
         }
-        builder.Prompts.text(session,"¿Algo en especifico?")
+        session.send("¿Algo en especifico?")
+        // session.beginDialog('/');
     },
     (session,results)=>{
-            var Respuesta=results.response.toLowerCase();
             if(Respuesta===("si")){
                 session.send("Muy bien, ¿Qué te interesa?")
                 session.beginDialog('/')    
