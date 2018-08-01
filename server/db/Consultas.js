@@ -3,7 +3,7 @@ var respuesta;
 var BuscarProducto=(Producto)=>{
     return new Promise ((resolve,reject)=>{
         modelProductos.find({"$or":[{Producto:Producto},{Tipo:Producto}]},{_id:0},(error,Productos)=>{
-            if(error){
+            if(error){        
                 respuesta=error
             }else{
                 respuesta=Productos;
