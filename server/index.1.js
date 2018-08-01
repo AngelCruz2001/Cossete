@@ -2,14 +2,15 @@
 var builder = require('botbuilder');
 var restify =require ('restify');
 var btoa=require('btoa');
-var base64img = require ('base64-img');
-
+var $=require('jquery');
+var opn=require('opn');
 //Variables globales
 var conexion=require('./db/Consultas');
 var connector=require('./db/conexion');
 var Producto,Accion,sql,direccionI="C:\\imgBot";
+var ayuda=require('./Ayuda')
 var inMemoryStorage = new builder.MemoryBotStorage();
-var Extension1=2,Raraimg="",Tarjetas1=[],Tarjetas=[],revisar;
+var Extension1=2,Raraimg="",Tarjetas=[],revisar;
 var ProductoElegido,ProductosElegidos;
 // Levantar Restify
 var server = restify.createServer();
@@ -159,52 +160,13 @@ dialog.matches('Comprar',[
      
 ]);
 
+dialog.matches('Pagar',[
+    (session)=>{
+        ayuda.Guia(session)
+    }
+]);
 
 //Funciones
-var Guia=(session)=>{
-    session.send("Dirigase a un producto de su interes y seleccione añadir al carrito.");
-    session.send('Seleccione la talla y la cantidad de prendas que le gustaria adquirir, presione "Go to cart".');
-    session.send('Aqui puede seleccionar de que forma quiere pagar')
-    session.endConversation("Si tiene alguna otra duda solo digame.")
-}
-var traerProductos=(session)=>{
-    
-    Extension=ProductosElegidos.length;
-        for(var i=0; i<Extension; i++){
-                CrearTarjetProductos(
-                    session,
-                    Extension-1,
-                    "Producto"+i,
-                    ProductosElegidos[i].URLimg,
-                    i,
-                    ProductosElegidos[i].Producto,
-                    ProductosElegidos[i].Precio);
-            } 
-}
-
-var CrearTarjetProductos=(session,Extension,Nombre,UrlImg,ExtensionActual,NombreProducto,Precio)=>{
-    // base64Img.img('data:image/jpeg;'+Base64Img,'', Nombre, function(err, filepath) {});
-  
-    Nombre = new builder.HeroCard(session)
-    .title(NombreProducto)
-    .subtitle("$"+Precio+".00")
-    .text('Short Description here')
-    .images([
-        builder.CardImage.create(session, UrlImg)
-    ])
-    .buttons([
-        builder.CardAction.openUrl(session, 'http://itecormovil.com/cosette/magento/index.php/shop.html', 'Comprar')
-    ]);
-
-        // Creamos un array de tarjetas
-    Tarjetas1.push(Nombre)
-    if(ExtensionActual===Extension){
-    console.log(Extension +"  ==  "+ ExtensionActual);
-
-        var msj = new builder.Message(session).attachmentLayout(builder.AttachmentLayout.carousel).attachments(Tarjetas1);
-        session.send(msj);
-    }
-}
 
 
     
@@ -222,10 +184,33 @@ bot.dialog('/ComprarSEntidad',[
         if(Asesorar==="Si"){
             session.send("Se supone que aqui le enseño los productos y le muestro imagines pero pues que flojera ¿Verdad?");
             
-            traerProductos(session);
+            // session.send("")
+            // opn('');
+            session.send("Puede elegir del catalogo")
+            ayuda.traerProductos(session,ProductosElegidos);
+            var Busqueda1 = new builder.HeroCard(session)
+            .title("O tengo esta opcion para busqueda")
+            .subtitle("")
+            .text('')
+            .images([
+                builder.CardImage.create(session, "")
+            ])
+            .buttons([
+                builder.CardAction.openUrl(session, 'http://itecormovil.com/cosette/magento/index.php/catalogsearch/advanced/', 'Busqueda Avanzada')
+            ]);
+            var Busqueda=[Busqueda1]
+        var msj2 = new builder.Message(session).attachmentLayout(builder.AttachmentLayout.carousel).attachments(Busqueda);
 
+        session.send(msj2)
+        }else if(Asesorar==="No"){
+            // session.send("Haz lo que quieras entones!!");
+            session.send("¿Otra cosa que pueda hacer por ti?");
+            session.beginDialog('/');
         }
-        session.send("¿Algo en especifico?")
+        
+        
+
+        
         // session.beginDialog('/');
     },
     (session,results)=>{
@@ -233,6 +218,7 @@ bot.dialog('/ComprarSEntidad',[
                 session.send("Muy bien, ¿Qué te interesa?")
                 session.beginDialog('/')    
             }else if(Respuesta===("no")){
+
                 //Crear TODOOOOOOOOO el catalogo pero despuecito
             }else{
                 session.beginDialog('/')    
@@ -251,17 +237,7 @@ bot.dialog('/verPrecio',[
         //     opciones=`${ProductosElegidos[k].Producto}  ${ProductosElegidos[k].Precio}|`
         //     if(k===ProductosElegidos.length-1)opciones=`${ProductosElegidos[k].Producto}  ${ProductosElegidos[k].Precio}`
         // }
-        Extension=ProductosElegidos.length;
-        for(var i=0; i<Extension; i++){
-                CrearTarjetProductos(
-                    session,
-                    Extension-1,
-                    "Producto"+i,
-                    ProductosElegidos[i].URLimg,
-                    i,
-                    ProductosElegidos[i].Producto,
-                    ProductosElegidos[i].Precio);
-            }    
+           ayuda.traerProductos(session,ProductosElegidos);
         // builder.Prompts.choice(session,"Tengo estas opciones, ¿Cual te gusta mas?",opciones,{ listStyle: builder.ListStyle.button });
         session.send("¿Algun otra cosa que puedo hacer por usted?");
         session.beginDialog("/");
