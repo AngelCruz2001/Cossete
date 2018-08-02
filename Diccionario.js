@@ -14,9 +14,9 @@ var Diccionario=(Palabra)=>{
         }
     }
     var JumpSuitDiccionario= ["jumpsuit","jump suite","jumpsuite","jump suit","pantalones","pantalón","pantalon"];
-    var DressModelDiccionario= ["dress model","dress model","dres model","vestido"];
-    var SweatersDiccionario= ["sweters","sueter","chamarra"];
-    var Diccionarios=[JumpSuitDiccionario,SweatersDiccionario];
+    var DressModelDiccionario= ["dress model","dress model","dres model","vestido","bestido"];
+    var SweatersDiccionario= ["sweaters","sueter","chamarra"];
+    var Diccionarios=[JumpSuitDiccionario,DressModelDiccionario,SweatersDiccionario];
     for(var w=0; w<Diccionarios.length;w++){
         if (Bandera===false){
             var DiccionarioActual=Diccionarios[w];
